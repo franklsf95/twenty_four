@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
-from enum import Enum
+# NOTE: We cannot use new-style object due to limitations of transcrypt.
+
 from itertools import combinations
-from typing import List, Optional, Set
-import math
+from math import isclose
 
 N = 4
 TARGET = 24
 
 
-class Operator(Enum):
+class Operator:
     """Represents an arithmetic operator."""
     none = 10000
     plus = 101
@@ -17,14 +17,25 @@ class Operator(Enum):
     multiply = 201
     divide = 202
 
-    def precedence(self) -> int:
-        return int(self.value / 100)
+    @staticmethod
+    def precedence(op):
+        """
+        :param op: Operator
+        :return: int
+        """
+        return int(op / 100)
 
     @staticmethod
-    def need_parentheses(op: 'Operator', sub_op: 'Operator', is_left: bool) -> bool:
-        if op.precedence() < sub_op.precedence():
+    def need_parentheses(op, sub_op, is_left):
+        """
+        :param op: Operator
+        :param sub_op: Operator
+        :param is_left: bool
+        :return: bool
+        """
+        if Operator.precedence(op) < Operator.precedence(sub_op):
             return False
-        if op.precedence() == sub_op.precedence():
+        if Operator.precedence(op) == Operator.precedence(sub_op):
             if op is Operator.plus or op is Operator.multiply:
                 return False
             if op is Operator.minus and sub_op is Operator.plus and is_left:
@@ -34,21 +45,35 @@ class Operator(Enum):
         return True
 
 
-class Expression(object):
+class Expression:
     """Represents an arithmetic expression."""
 
-    def __init__(self, val: float, op: Operator, children: List['Expression']):
-        super(Expression, self).__init__()
+    def __init__(self, val, op, children):
+        """
+        :param val: float
+        :param op: Operator
+        :param children: [Expression]
+        """
         self.val = val
         self.op = op
         self.children = children
 
     @classmethod
-    def make_init(cls, num: int) -> 'Expression':
+    def make_init(cls, num):
+        """
+        :param num: int
+        :return: Expression
+        """
         return cls(float(num), Operator.none, [])
 
     @classmethod
-    def make(cls, op: Operator, a: 'Expression', b: 'Expression') -> 'Expression':
+    def make(cls, op, a, b):
+        """
+        :param op: Operator
+        :param a: Expression
+        :param b: Expression
+        :return: Expression
+        """
         children = [a, b]
         if op is Operator.plus:
             # Normalize (a + (b + c)) to (a + b + c)
@@ -77,7 +102,12 @@ class Expression(object):
         return cls(val, op, children)
 
     @staticmethod
-    def flatten(children: List['Expression'], op: Operator) -> List['Expression']:
+    def flatten(children, op):
+        """
+        :param children: [Expression]
+        :param op: Operator
+        :return: [Expression]
+        """
         ret = []
         for c in children:
             if c.op is op:
@@ -87,10 +117,17 @@ class Expression(object):
         ret.sort(key=lambda e: e.val)
         return ret
 
-    def is_target(self) -> bool:
-        return math.isclose(self.val, TARGET)
+    def is_target(self):
+        """
+        :return: bool
+        """
+        return isclose(self.val, TARGET)
 
-    def expr(self, need_parentheses=False) -> str:
+    def expr(self, need_parentheses=False):
+        """
+        :param need_parentheses: bool
+        :return: str
+        """
         is_left = True
         children = []
         for c in self.children:
@@ -114,23 +151,35 @@ class Expression(object):
             return s
 
 
-class Aggregator(object):
+class Aggregator:
     """An aggregator of the results from the solver. Keeps track of solutions to remove duplicates."""
 
     def __init__(self):
-        super(Aggregator, self).__init__()
-        self.pool = set()  # type: Set[str]
+        self.pool = set()
 
-    def add(self, e: 'Expression'):
+    def add(self, e):
+        """
+        :param e: Expression
+        :return: None
+        """
         a = e.expr()
-        if a in self.pool:
-            # print(a + ' = DUP')
-            return
-        self.pool.add(a)
-        print("{} = {}".format(a, TARGET))
+        if a not in self.pool:
+            self.pool.add(a)
+
+    def solutions(self):
+        """
+        :return: [str]
+        """
+        return list(self.pool)
 
 
-def solve(agg: Aggregator, in_elems: List[Expression], new_elem: Optional[Expression]) -> bool:
+def solve(agg, in_elems, new_elem):
+    """
+    :param agg: Aggregator
+    :param in_elems: [Expression]
+    :param new_elem: Expression option
+    :return: bool
+    """
     elems = in_elems.copy()
     if new_elem is not None:
         elems.append(new_elem)
@@ -144,7 +193,7 @@ def solve(agg: Aggregator, in_elems: List[Expression], new_elem: Optional[Expres
         else:
             return False
     else:
-        ret = []  # type: List[bool]
+        ret = []
         for a, b in combinations(elems, 2):
             remainder = elems.copy()
             remainder.remove(a)
@@ -162,16 +211,24 @@ def solve(agg: Aggregator, in_elems: List[Expression], new_elem: Optional[Expres
         return any(ret)
 
 
-def solve_main(nums: List[int]):
+def solve_main(nums):
+    """
+    :param nums: [int]
+    :return: [str]
+    """
     elems = [Expression.make_init(i) for i in nums]
     agg = Aggregator()
-    ret = solve(agg, elems, None)
-    if not ret:
-        print('No solution.')
+    solve(agg, elems, None)
+    return agg.solutions()
 
 
 def main():
-    solve_main([2,6,7,8])
+    ret = solve_main([2,6,7,8])
+    if len(ret) == 0:
+        print('No solutions.')
+    else:
+        for s in ret:
+            print("{} = {}".format(s, TARGET))
 
 if __name__ == '__main__':
     main()
