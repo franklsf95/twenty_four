@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-# NOTE: We cannot use new-style object due to limitations of transcrypt.
-
-from itertools import combinations
-from math import isclose
+# NOTE: We cannot use new-style objects or import libraries
+# due to limitations of Transcrypt.
 
 N = 4
 TARGET = 24
@@ -58,16 +56,16 @@ class Expression:
         self.op = op
         self.children = children
 
-    @classmethod
-    def make_init(cls, num):
+    @staticmethod
+    def make_init(num):
         """
         :param num: int
         :return: Expression
         """
-        return cls(float(num), Operator.none, [])
+        return Expression(float(num), Operator.none, [])
 
-    @classmethod
-    def make(cls, op, a, b):
+    @staticmethod
+    def make(op, a, b):
         """
         :param op: Operator
         :param a: Expression
@@ -78,7 +76,7 @@ class Expression:
         if op is Operator.plus:
             # Normalize (a + (b + c)) to (a + b + c)
             val = a.val + b.val
-            children = cls.flatten(children, op)
+            children = Expression.flatten(children, op)
         elif op is Operator.minus:
             # Normalize (a - (b - c)) to (a + (c - b))
             val = a.val - b.val
@@ -89,7 +87,7 @@ class Expression:
         elif op is Operator.multiply:
             # Normalize (a * (b * c)) to (a * b * c)
             val = a.val * b.val
-            children = cls.flatten(children, op)
+            children = Expression.flatten(children, op)
         elif op is Operator.divide:
             # Normalize (a / (b / c)) to (a * (c / b))
             val = a.val / b.val
@@ -99,7 +97,7 @@ class Expression:
                 b.val = 1 / b.val
         else:
             raise AssertionError('Impossible operator')
-        return cls(val, op, children)
+        return Expression(val, op, children)
 
     @staticmethod
     def flatten(children, op):
@@ -121,7 +119,9 @@ class Expression:
         """
         :return: bool
         """
-        return isclose(self.val, TARGET)
+        diff = self.val - TARGET
+        eps = 1e-9
+        return diff < eps and diff > -eps
 
     def expr(self, need_parentheses=False):
         """
@@ -142,7 +142,7 @@ class Expression:
         elif self.op is Operator.divide:
             s = ' / '.join(children)
         elif self.op is Operator.none:
-            s = "{:.0f}".format(self.val)
+            s = str(int(self.val))
         else:
             raise AssertionError('Impossible operator')
         if need_parentheses:
@@ -180,12 +180,13 @@ def solve(agg, in_elems, new_elem):
     :param new_elem: Expression option
     :return: bool
     """
-    elems = in_elems.copy()
+    elems = list(in_elems)
     if new_elem is not None:
         elems.append(new_elem)
-    if len(elems) == 0:
+    n = len(elems)
+    if n == 0:
         raise AssertionError('Impossible state: 0 elements')
-    if len(elems) == 1:
+    if n == 1:
         a = elems[0]
         if a.is_target():
             agg.add(a)
@@ -194,20 +195,23 @@ def solve(agg, in_elems, new_elem):
             return False
     else:
         ret = []
-        for a, b in combinations(elems, 2):
-            remainder = elems.copy()
-            remainder.remove(a)
-            remainder.remove(b)
-            ret.append(solve(agg, remainder, Expression.make(Operator.plus, a, b)))
-            if a.val >= b.val:
-                ret.append(solve(agg, remainder, Expression.make(Operator.minus, a, b)))
-            if b.val >= a.val:
-                ret.append(solve(agg, remainder, Expression.make(Operator.minus, b, a)))
-            ret.append(solve(agg, remainder, Expression.make(Operator.multiply, a, b)))
-            if b.val != 0:
-                ret.append(solve(agg, remainder, Expression.make(Operator.divide, a, b)))
-            if a.val != 0:
-                ret.append(solve(agg, remainder, Expression.make(Operator.divide, b, a)))
+        for i in range(0, n):
+            for j in range(i + 1, n):
+                a = elems[i]
+                b = elems[j]
+                remainder = list(elems)
+                remainder.remove(a)
+                remainder.remove(b)
+                ret.append(solve(agg, remainder, Expression.make(Operator.plus, a, b)))
+                if a.val >= b.val:
+                    ret.append(solve(agg, remainder, Expression.make(Operator.minus, a, b)))
+                if b.val >= a.val:
+                    ret.append(solve(agg, remainder, Expression.make(Operator.minus, b, a)))
+                ret.append(solve(agg, remainder, Expression.make(Operator.multiply, a, b)))
+                if b.val != 0:
+                    ret.append(solve(agg, remainder, Expression.make(Operator.divide, a, b)))
+                if a.val != 0:
+                    ret.append(solve(agg, remainder, Expression.make(Operator.divide, b, a)))
         return any(ret)
 
 
@@ -222,13 +226,13 @@ def solve_main(nums):
     return agg.solutions()
 
 
-def main():
-    ret = solve_main([2,6,7,8])
-    if len(ret) == 0:
-        print('No solutions.')
-    else:
-        for s in ret:
-            print("{} = {}".format(s, TARGET))
+# def main():
+#     ret = solve_main([1, 2, 3, 4])
+#     if len(ret) == 0:
+#         print('No solutions.')
+#     else:
+#         for s in ret:
+#             print("{} = {}".format(s, TARGET))
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

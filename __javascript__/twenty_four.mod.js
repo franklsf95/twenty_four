@@ -1,6 +1,4 @@
 	(function () {
-		var combinations = __init__ (__world__.itertools).combinations;
-		var isclose = __init__ (__world__.math).isclose;
 		var N = 4;
 		var TARGET = 24;
 		var Operator = __class__ ('Operator', [object], {
@@ -36,14 +34,14 @@
 				self.op = op;
 				self.children = children;
 			});},
-			get make_init () {return __get__ (this, function (cls, num) {
-				return cls (float (num), Operator.none, list ([]));
+			get make_init () {return __get__ (this, function (num) {
+				return Expression (float (num), Operator.none, list ([]));
 			});},
-			get make () {return __get__ (this, function (cls, op, a, b) {
+			get make () {return __get__ (this, function (op, a, b) {
 				var children = list ([a, b]);
 				if (op === Operator.plus) {
 					var val = a.val + b.val;
-					var children = cls.flatten (children, op);
+					var children = Expression.flatten (children, op);
 				}
 				else {
 					if (op === Operator.minus) {
@@ -57,7 +55,7 @@
 					else {
 						if (op === Operator.multiply) {
 							var val = a.val * b.val;
-							var children = cls.flatten (children, op);
+							var children = Expression.flatten (children, op);
 						}
 						else {
 							if (op === Operator.divide) {
@@ -76,7 +74,7 @@
 						}
 					}
 				}
-				return cls (val, op, children);
+				return Expression (val, op, children);
 			});},
 			get flatten () {return __get__ (this, function (children, op) {
 				var ret = list ([]);
@@ -96,7 +94,9 @@
 				return ret;
 			});},
 			get is_target () {return __get__ (this, function (self) {
-				return isclose (self.val, TARGET);
+				var diff = self.val - TARGET;
+				var eps = 1e-09;
+				return diff < eps && diff > -(eps);
 			});},
 			get expr () {return __get__ (this, function (self, need_parentheses) {
 				if (typeof need_parentheses == 'undefined' || (need_parentheses != null && need_parentheses .__class__ == __kwargdict__)) {;
@@ -127,7 +127,7 @@
 							}
 							else {
 								if (self.op === Operator.none) {
-									var s = '{:.0f}'.format (self.val);
+									var s = str (int (self.val));
 								}
 								else {
 									var __except0__ = AssertionError ('Impossible operator');
@@ -161,16 +161,17 @@
 			});}
 		});
 		var solve = function (agg, in_elems, new_elem) {
-			var elems = in_elems.copy ();
+			var elems = list (in_elems);
 			if (new_elem !== null) {
 				elems.append (new_elem);
 			}
-			if (len (elems) == 0) {
+			var n = len (elems);
+			if (n == 0) {
 				var __except0__ = AssertionError ('Impossible state: 0 elements');
 				__except0__.__cause__ = null;
 				throw __except0__;
 			}
-			if (len (elems) == 1) {
+			if (n == 1) {
 				var a = elems [0];
 				if (a.is_target ()) {
 					agg.add (a);
@@ -182,27 +183,27 @@
 			}
 			else {
 				var ret = list ([]);
-				var __iterable0__ = combinations (elems, 2);
-				for (var __index0__ = 0; __index0__ < __iterable0__.length; __index0__++) {
-					var __left0__ = __iterable0__ [__index0__];
-					var a = __left0__ [0];
-					var b = __left0__ [1];
-					var remainder = elems.copy ();
-					remainder.remove (a);
-					remainder.remove (b);
-					ret.append (solve (agg, remainder, Expression.make (Operator.plus, a, b)));
-					if (a.val >= b.val) {
-						ret.append (solve (agg, remainder, Expression.make (Operator.minus, a, b)));
-					}
-					if (b.val >= a.val) {
-						ret.append (solve (agg, remainder, Expression.make (Operator.minus, b, a)));
-					}
-					ret.append (solve (agg, remainder, Expression.make (Operator.multiply, a, b)));
-					if (b.val != 0) {
-						ret.append (solve (agg, remainder, Expression.make (Operator.divide, a, b)));
-					}
-					if (a.val != 0) {
-						ret.append (solve (agg, remainder, Expression.make (Operator.divide, b, a)));
+				for (var i = 0; i < n; i++) {
+					for (var j = i + 1; j < n; j++) {
+						var a = elems [i];
+						var b = elems [j];
+						var remainder = list (elems);
+						remainder.remove (a);
+						remainder.remove (b);
+						ret.append (solve (agg, remainder, Expression.make (Operator.plus, a, b)));
+						if (a.val >= b.val) {
+							ret.append (solve (agg, remainder, Expression.make (Operator.minus, a, b)));
+						}
+						if (b.val >= a.val) {
+							ret.append (solve (agg, remainder, Expression.make (Operator.minus, b, a)));
+						}
+						ret.append (solve (agg, remainder, Expression.make (Operator.multiply, a, b)));
+						if (b.val != 0) {
+							ret.append (solve (agg, remainder, Expression.make (Operator.divide, a, b)));
+						}
+						if (a.val != 0) {
+							ret.append (solve (agg, remainder, Expression.make (Operator.divide, b, a)));
+						}
 					}
 				}
 				return any (ret);
@@ -222,35 +223,12 @@
 			solve (agg, elems, null);
 			return agg.solutions ();
 		};
-		var main = function () {
-			var ret = solve_main (list ([2, 6, 7, 8]));
-			if (len (ret) == 0) {
-				print ('No solutions.');
-			}
-			else {
-				var __iterable0__ = ret;
-				for (var __index0__ = 0; __index0__ < __iterable0__.length; __index0__++) {
-					var s = __iterable0__ [__index0__];
-					print ('{} = {}'.format (s, TARGET));
-				}
-			}
-		};
-		if (__name__ == '__main__') {
-			main ();
-		}
-		__pragma__ ('<use>' +
-			'itertools' +
-			'math' +
-		'</use>')
 		__pragma__ ('<all>')
 			__all__.Aggregator = Aggregator;
 			__all__.Expression = Expression;
 			__all__.N = N;
 			__all__.Operator = Operator;
 			__all__.TARGET = TARGET;
-			__all__.combinations = combinations;
-			__all__.isclose = isclose;
-			__all__.main = main;
 			__all__.solve = solve;
 			__all__.solve_main = solve_main;
 		__pragma__ ('</all>')
