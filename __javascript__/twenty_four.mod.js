@@ -15,13 +15,13 @@
 					return false;
 				}
 				if (Operator.precedence (op) == Operator.precedence (sub_op)) {
-					if (op === Operator.plus || op === Operator.multiply) {
+					if (op == Operator.plus || op == Operator.multiply) {
 						return false;
 					}
-					if (op === Operator.minus && sub_op === Operator.plus && is_left) {
+					if (op == Operator.minus && sub_op == Operator.plus && is_left) {
 						return false;
 					}
-					if (op === Operator.divide && sub_op === Operator.multiply && is_left) {
+					if (op == Operator.divide && sub_op == Operator.multiply && is_left) {
 						return false;
 					}
 				}
@@ -39,31 +39,29 @@
 			});},
 			get make () {return __get__ (this, function (op, a, b) {
 				var children = list ([a, b]);
-				if (op === Operator.plus) {
+				if (op == Operator.plus) {
 					var val = a.val + b.val;
 					var children = Expression.flatten (children, op);
 				}
 				else {
-					if (op === Operator.minus) {
+					if (op == Operator.minus) {
 						var val = a.val - b.val;
-						if (b.op === op) {
-							var op = Operator.plus;
-							b.children.reverse ();
-							b.val = -(b.val);
+						if (b.op == op) {
+							var b1 = Expression (op, -(b.val), py_reversed (b.children));
+							var children = list ([a, b1]);
 						}
 					}
 					else {
-						if (op === Operator.multiply) {
+						if (op == Operator.multiply) {
 							var val = a.val * b.val;
 							var children = Expression.flatten (children, op);
 						}
 						else {
-							if (op === Operator.divide) {
+							if (op == Operator.divide) {
 								var val = a.val / b.val;
-								if (b.op === op) {
-									var op = Operator.multiply;
-									b.children.reverse ();
-									b.val = 1 / b.val;
+								if (b.op == op) {
+									var b1 = Expression (op, 1 / b.val, py_reversed (b.children));
+									var children = list ([a, b1]);
 								}
 							}
 							else {
@@ -81,7 +79,7 @@
 				var __iterable0__ = children;
 				for (var __index0__ = 0; __index0__ < __iterable0__.length; __index0__++) {
 					var c = __iterable0__ [__index0__];
-					if (c.op === op) {
+					if (c.op == op) {
 						ret.extend (c.children);
 					}
 					else {
@@ -110,23 +108,23 @@
 					children.append (c.expr (Operator.need_parentheses (self.op, c.op, is_left)));
 					var is_left = false;
 				}
-				if (self.op === Operator.plus) {
+				if (self.op == Operator.plus) {
 					var s = ' + '.join (children);
 				}
 				else {
-					if (self.op === Operator.minus) {
+					if (self.op == Operator.minus) {
 						var s = ' - '.join (children);
 					}
 					else {
-						if (self.op === Operator.multiply) {
+						if (self.op == Operator.multiply) {
 							var s = ' * '.join (children);
 						}
 						else {
-							if (self.op === Operator.divide) {
+							if (self.op == Operator.divide) {
 								var s = ' / '.join (children);
 							}
 							else {
-								if (self.op === Operator.none) {
+								if (self.op == Operator.none) {
 									var s = str (int (self.val));
 								}
 								else {
@@ -223,12 +221,29 @@
 			solve (agg, elems, null);
 			return agg.solutions ();
 		};
+		var main = function () {
+			var ret = solve_main (list ([3, 3, 8, 8]));
+			if (len (ret) == 0) {
+				print ('No solutions.');
+			}
+			else {
+				var __iterable0__ = ret;
+				for (var __index0__ = 0; __index0__ < __iterable0__.length; __index0__++) {
+					var s = __iterable0__ [__index0__];
+					print ('{} = {}'.format (s, TARGET));
+				}
+			}
+		};
+		if (__name__ == '__main__') {
+			main ();
+		}
 		__pragma__ ('<all>')
 			__all__.Aggregator = Aggregator;
 			__all__.Expression = Expression;
 			__all__.N = N;
 			__all__.Operator = Operator;
 			__all__.TARGET = TARGET;
+			__all__.main = main;
 			__all__.solve = solve;
 			__all__.solve_main = solve_main;
 		__pragma__ ('</all>')

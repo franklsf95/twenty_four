@@ -34,11 +34,11 @@ class Operator:
         if Operator.precedence(op) < Operator.precedence(sub_op):
             return False
         if Operator.precedence(op) == Operator.precedence(sub_op):
-            if op is Operator.plus or op is Operator.multiply:
+            if op == Operator.plus or op == Operator.multiply:
                 return False
-            if op is Operator.minus and sub_op is Operator.plus and is_left:
+            if op == Operator.minus and sub_op == Operator.plus and is_left:
                 return False
-            if op is Operator.divide and sub_op is Operator.multiply and is_left:
+            if op == Operator.divide and sub_op == Operator.multiply and is_left:
                 return False
         return True
 
@@ -73,28 +73,26 @@ class Expression:
         :return: Expression
         """
         children = [a, b]
-        if op is Operator.plus:
+        if op == Operator.plus:
             # Normalize (a + (b + c)) to (a + b + c)
             val = a.val + b.val
             children = Expression.flatten(children, op)
-        elif op is Operator.minus:
+        elif op == Operator.minus:
             # Normalize (a - (b - c)) to (a + (c - b))
             val = a.val - b.val
-            if b.op is op:
-                op = Operator.plus
-                b.children.reverse()
-                b.val = -b.val
-        elif op is Operator.multiply:
+            if b.op == op:
+                b1 = Expression(op, -b.val, reversed(b.children))
+                children = [a, b1]
+        elif op == Operator.multiply:
             # Normalize (a * (b * c)) to (a * b * c)
             val = a.val * b.val
             children = Expression.flatten(children, op)
-        elif op is Operator.divide:
+        elif op == Operator.divide:
             # Normalize (a / (b / c)) to (a * (c / b))
             val = a.val / b.val
-            if b.op is op:
-                op = Operator.multiply
-                b.children.reverse()
-                b.val = 1 / b.val
+            if b.op == op:
+                b1 = Expression(op, 1 / b.val, reversed(b.children))
+                children = [a, b1]
         else:
             raise AssertionError('Impossible operator')
         return Expression(val, op, children)
@@ -108,7 +106,7 @@ class Expression:
         """
         ret = []
         for c in children:
-            if c.op is op:
+            if c.op == op:
                 ret.extend(c.children)
             else:
                 ret.append(c)
@@ -133,15 +131,15 @@ class Expression:
         for c in self.children:
             children.append(c.expr(Operator.need_parentheses(self.op, c.op, is_left)))
             is_left = False
-        if self.op is Operator.plus:
+        if self.op == Operator.plus:
             s = ' + '.join(children)
-        elif self.op is Operator.minus:
+        elif self.op == Operator.minus:
             s = ' - '.join(children)
-        elif self.op is Operator.multiply:
+        elif self.op == Operator.multiply:
             s = ' * '.join(children)
-        elif self.op is Operator.divide:
+        elif self.op == Operator.divide:
             s = ' / '.join(children)
-        elif self.op is Operator.none:
+        elif self.op == Operator.none:
             s = str(int(self.val))
         else:
             raise AssertionError('Impossible operator')
@@ -226,13 +224,13 @@ def solve_main(nums):
     return agg.solutions()
 
 
-# def main():
-#     ret = solve_main([1, 2, 3, 4])
-#     if len(ret) == 0:
-#         print('No solutions.')
-#     else:
-#         for s in ret:
-#             print("{} = {}".format(s, TARGET))
+def main():
+    ret = solve_main([3, 3, 8, 8])
+    if len(ret) == 0:
+        print('No solutions.')
+    else:
+        for s in ret:
+            print("{} = {}".format(s, TARGET))
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
