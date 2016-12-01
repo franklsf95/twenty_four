@@ -224,13 +224,13 @@ def solve_main(nums):
     return agg.solutions()
 
 
-def main():
-    ret = solve_main([3, 3, 8, 8])
-    if len(ret) == 0:
-        print('No solutions.')
-    else:
-        for s in ret:
-            print("{} = {}".format(s, TARGET))
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     ret = solve_main([3, 3, 8, 8])
+#     if len(ret) == 0:
+#         print('No solutions.')
+#     else:
+#         for s in ret:
+#             print("{} = {}".format(s, TARGET))
+#
+# if __name__ == '__main__':
+#     main()

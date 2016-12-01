@@ -1,5 +1,5 @@
 "use strict";
-// Transcrypt'ed from Python, 2016-12-01 01:06:21
+// Transcrypt'ed from Python, 2016-12-01 01:08:34
 function twenty_four () {
 	var __symbols__ = ['__py3.5__', '__esv5__'];
 	var __all__ = {};
@@ -2135,29 +2135,12 @@ function twenty_four () {
 			solve (agg, elems, null);
 			return agg.solutions ();
 		};
-		var main = function () {
-			var ret = solve_main (list ([3, 3, 8, 8]));
-			if (len (ret) == 0) {
-				print ('No solutions.');
-			}
-			else {
-				var __iterable0__ = ret;
-				for (var __index0__ = 0; __index0__ < __iterable0__.length; __index0__++) {
-					var s = __iterable0__ [__index0__];
-					print ('{} = {}'.format (s, TARGET));
-				}
-			}
-		};
-		if (__name__ == '__main__') {
-			main ();
-		}
 		__pragma__ ('<all>')
 			__all__.Aggregator = Aggregator;
 			__all__.Expression = Expression;
 			__all__.N = N;
 			__all__.Operator = Operator;
 			__all__.TARGET = TARGET;
-			__all__.main = main;
 			__all__.solve = solve;
 			__all__.solve_main = solve_main;
 		__pragma__ ('</all>')
