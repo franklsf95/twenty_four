@@ -1,5 +1,5 @@
 "use strict";
-// Transcrypt'ed from Python, 2016-12-01 01:08:34
+// Transcrypt'ed from Python, 2016-12-01 01:59:48
 function twenty_four () {
 	var __symbols__ = ['__py3.5__', '__esv5__'];
 	var __all__ = {};
@@ -1961,7 +1961,7 @@ function twenty_four () {
 					if (op == Operator.minus) {
 						var val = a.val - b.val;
 						if (b.op == op) {
-							var b1 = Expression (op, -(b.val), py_reversed (b.children));
+							var b1 = Expression (-(b.val), op, py_reversed (b.children));
 							var children = list ([a, b1]);
 						}
 					}
@@ -1974,12 +1974,12 @@ function twenty_four () {
 							if (op == Operator.divide) {
 								var val = a.val / b.val;
 								if (b.op == op) {
-									var b1 = Expression (op, 1 / b.val, py_reversed (b.children));
+									var b1 = Expression (1 / b.val, op, py_reversed (b.children));
 									var children = list ([a, b1]);
 								}
 							}
 							else {
-								var __except0__ = AssertionError ('Impossible operator');
+								var __except0__ = AssertionError ('Impossible operator ' + str (self.op));
 								__except0__.__cause__ = null;
 								throw __except0__;
 							}
@@ -2042,7 +2042,7 @@ function twenty_four () {
 									var s = str (int (self.val));
 								}
 								else {
-									var __except0__ = AssertionError ('Impossible operator');
+									var __except0__ = AssertionError ('Impossible operator ' + str (self.op));
 									__except0__.__cause__ = null;
 									throw __except0__;
 								}

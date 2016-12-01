@@ -81,7 +81,7 @@ class Expression:
             # Normalize (a - (b - c)) to (a + (c - b))
             val = a.val - b.val
             if b.op == op:
-                b1 = Expression(op, -b.val, reversed(b.children))
+                b1 = Expression(-b.val, op, reversed(b.children))
                 children = [a, b1]
         elif op == Operator.multiply:
             # Normalize (a * (b * c)) to (a * b * c)
@@ -91,10 +91,10 @@ class Expression:
             # Normalize (a / (b / c)) to (a * (c / b))
             val = a.val / b.val
             if b.op == op:
-                b1 = Expression(op, 1 / b.val, reversed(b.children))
+                b1 = Expression(1 / b.val, op, reversed(b.children))
                 children = [a, b1]
         else:
-            raise AssertionError('Impossible operator')
+            raise  AssertionError('Impossible operator ' + str(self.op))
         return Expression(val, op, children)
 
     @staticmethod
@@ -142,7 +142,7 @@ class Expression:
         elif self.op == Operator.none:
             s = str(int(self.val))
         else:
-            raise AssertionError('Impossible operator')
+            raise AssertionError('Impossible operator ' + str(self.op))
         if need_parentheses:
             return '(' + s + ')'
         else:
@@ -225,12 +225,12 @@ def solve_main(nums):
 
 
 # def main():
-#     ret = solve_main([3, 3, 8, 8])
+#     ret = solve_main([1, 2, 3, 4])
 #     if len(ret) == 0:
 #         print('No solutions.')
 #     else:
 #         for s in ret:
 #             print("{} = {}".format(s, TARGET))
-#
+
 # if __name__ == '__main__':
 #     main()

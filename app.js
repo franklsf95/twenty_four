@@ -1,7 +1,10 @@
 var solve = window['twenty_four'].solve_main;
 
 function parse(input) {
-    return input.replace(/[^\d\s,]/g, '').split(/[\s,]+/).map(function(s) {
+    console.log(input.replace(/[^\d\s,]/g, ''));
+    return input.replace(/[^\d\s,]/g, '').split(/[\s,]+/).filter(function(s) {
+        return s;
+    }).map(function(s) {
         return parseInt(s);
     });
 }
@@ -10,6 +13,7 @@ function submit() {
     var requiredNumber = 4;
     var target = 24;
     var $output = $("#output");
+
     var input = $('#input-numbers').val();
     var numbers = parse(input);
     if (numbers.length < requiredNumber) {
@@ -20,6 +24,7 @@ function submit() {
         $output.html('<h2><span class="tag tag-warning">your phone could burn</span></h2>');
         return;
     }
+    console.log(numbers);
     var solutions = solve(numbers);
     if (solutions.length == 0) {
         $output.html('<h2><span class="tag tag-danger">no solution</span></h2>');
