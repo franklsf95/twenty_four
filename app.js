@@ -1,7 +1,7 @@
 var solve = window['twenty_four'].solve_main;
 
 function parse(input) {
-    return input.replace(/[^\d,]/g, '').split(',').map(function(s) {
+    return input.replace(/[^\d\s,]/g, '').split(/[\s,]+/).map(function(s) {
         return parseInt(s);
     });
 }
